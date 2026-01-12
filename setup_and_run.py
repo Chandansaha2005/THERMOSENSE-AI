@@ -7,6 +7,8 @@ import os
 import sys
 import subprocess
 from pathlib import Path
+import pandas as pd
+import numpy as np
 
 
 def print_header(text):
@@ -14,6 +16,70 @@ def print_header(text):
     print("\n" + "=" * 60)
     print(f"  {text}")
     print("=" * 60 + "\n")
+
+
+def validate_csv(csv_path):
+    """
+    Validate generated CSV data
+    Checks for NaN, inf, and realistic values
+    """
+    print("\n[Validation] Checking CSV data integrity...")
+    
+    try:
+        df = pd.read_csv(csv_path)
+        print(f"  Loaded {len(df)} rows")
+        
+        # Check for NaN
+        nan_cols = df.columns[df.isna().any()].tolist()
+        if nan_cols:
+            print(f"  ❌ NaN found in columns: {nan_cols}")
+            return False
+        
+        # Check for inf
+        numeric_df = df.select_dtypes(include=[np.number])
+        inf_cols = numeric_df.columns[np.isinf(numeric_df).any()].tolist()
+        if inf_cols:
+            print(f"  ❌ Inf found in columns: {inf_cols}")
+            return False
+        
+        # Validate temperature ranges
+        if 'indoor_temp' in df.columns:
+            temp_min = df['indoor_temp'].min()
+            temp_max = df['indoor_temp'].max()
+            temp_mean = df['indoor_temp'].mean()
+            print(f"  Indoor temp: min={temp_min:.2f}°C, max={temp_max:.2f}°C, mean={temp_mean:.2f}°C")
+            
+            if temp_min < 10.0 or temp_max > 50.0:
+                print(f"  ❌ Indoor temperature out of realistic bounds")
+                return False
+        
+        if 'outdoor_temp' in df.columns:
+            temp_min = df['outdoor_temp'].min()
+            temp_max = df['outdoor_temp'].max()
+            temp_mean = df['outdoor_temp'].mean()
+            print(f"  Outdoor temp: min={temp_min:.2f}°C, max={temp_max:.2f}°C, mean={temp_mean:.2f}°C")
+            
+            if temp_min < 10.0 or temp_max > 60.0:
+                print(f"  ❌ Outdoor temperature out of realistic bounds")
+                return False
+        
+        # Check occupancy
+        if 'occupancy' in df.columns:
+            occ_min = df['occupancy'].min()
+            occ_max = df['occupancy'].max()
+            occ_mean = df['occupancy'].mean()
+            print(f"  Occupancy: min={occ_min:.0f}, max={occ_max:.0f}, mean={occ_mean:.2f}")
+            
+            if occ_min < 0 or occ_max > 15:
+                print(f"  ❌ Occupancy out of realistic bounds")
+                return False
+        
+        print("  ✓ All validations passed")
+        return True
+        
+    except Exception as e:
+        print(f"  ❌ Validation error: {e}")
+        return False
 
 
 def run_command(description, command):
@@ -91,7 +157,16 @@ def generate_data():
             print("   ⏭️  Skipping\n")
             return True
     
-    return run_command("Generating data", [sys.executable, 'simulation/sensors.py'])
+    # Generate data
+    if not run_command("Generating data", [sys.executable, 'simulation/sensors.py']):
+        return False
+    
+    # Validate generated CSV
+    if not validate_csv('data/simulated_data.csv'):
+        print("\n❌ Generated data failed validation")
+        return False
+    
+    return True
 
 
 def train_models():

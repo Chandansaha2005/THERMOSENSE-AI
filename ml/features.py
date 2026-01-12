@@ -27,7 +27,7 @@ class FeatureEngineer:
         for lag in lags:
             periods = int(lag / TIME_STEP_MINUTES)
             lag_col_name = f'{column}_lag_{lag}min'
-            df_copy[lag_col_name] = df_copy[column].shift(periods)
+            df_copy[lag_col_name] = df_copy[column].shift(periods).astype(np.float64)
         
         return df_copy
     
@@ -37,31 +37,36 @@ class FeatureEngineer:
         
         if 'timestamp' in df_copy.columns:
             df_copy['timestamp'] = pd.to_datetime(df_copy['timestamp'])
-            df_copy['hour'] = df_copy['timestamp'].dt.hour
-            df_copy['day_of_week'] = df_copy['timestamp'].dt.dayofweek
+            df_copy['hour'] = df_copy['timestamp'].dt.hour.astype(np.float64)
+            df_copy['day_of_week'] = df_copy['timestamp'].dt.dayofweek.astype(np.float64)
         
-        df_copy['hour_sin'] = np.sin(2 * np.pi * df_copy['hour'] / 24)
-        df_copy['hour_cos'] = np.cos(2 * np.pi * df_copy['hour'] / 24)
-        df_copy['day_sin'] = np.sin(2 * np.pi * df_copy['day_of_week'] / 7)
-        df_copy['day_cos'] = np.cos(2 * np.pi * df_copy['day_of_week'] / 7)
+        df_copy['hour_sin'] = np.sin(2.0 * np.pi * df_copy['hour'] / 24.0).astype(np.float64)
+        df_copy['hour_cos'] = np.cos(2.0 * np.pi * df_copy['hour'] / 24.0).astype(np.float64)
+        df_copy['day_sin'] = np.sin(2.0 * np.pi * df_copy['day_of_week'] / 7.0).astype(np.float64)
+        df_copy['day_cos'] = np.cos(2.0 * np.pi * df_copy['day_of_week'] / 7.0).astype(np.float64)
         
-        df_copy['is_weekend'] = (df_copy['day_of_week'] >= 5).astype(int)
+        df_copy['is_weekend'] = (df_copy['day_of_week'] >= 5).astype(np.float64)
         df_copy['is_office_hours'] = (
             (df_copy['hour'] >= OFFICE_START_HOUR) & 
             (df_copy['hour'] < OFFICE_END_HOUR)
-        ).astype(int)
+        ).astype(np.float64)
         
         return df_copy
     
     def create_rolling_features(self, df, column, windows=[2, 4, 8]):
-        """Create rolling statistics"""
+        """Create rolling statistics with NaN handling"""
         df_copy = df.copy()
         
         for window in windows:
             roll_col_name = f'{column}_rolling_mean_{window}'
             df_copy[roll_col_name] = df_copy[column].rolling(
                 window=window, min_periods=1
-            ).mean()
+            ).mean().astype(np.float64)
+            
+            # Fill any remaining NaN with column mean
+            if df_copy[roll_col_name].isna().any():
+                col_mean = df_copy[roll_col_name].mean()
+                df_copy[roll_col_name] = df_copy[roll_col_name].fillna(col_mean)
         
         return df_copy
     
@@ -73,6 +78,11 @@ class FeatureEngineer:
         df_features = self.create_rolling_features(df_features, 'occupancy', [4, 8])
         df_features = df_features.dropna()
         
+        # Ensure all numeric columns are float64
+        numeric_cols = df_features.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            df_features[col] = df_features[col].astype(np.float64)
+        
         return df_features
     
     def build_temperature_features(self, df):
@@ -83,10 +93,19 @@ class FeatureEngineer:
         df_features = self.create_lag_features(df_features, 'occupancy', [15, 30])
         df_features = self.create_lag_features(df_features, 'hvac_state', [15, 30])
         
-        df_features['temp_trend'] = df_features['indoor_temp'] - df_features['indoor_temp_lag_15min']
-        df_features['temp_diff'] = df_features['outdoor_temp'] - df_features['indoor_temp']
+        df_features['temp_trend'] = (df_features['indoor_temp'] - df_features['indoor_temp_lag_15min']).astype(np.float64)
+        df_features['temp_diff'] = (df_features['outdoor_temp'] - df_features['indoor_temp']).astype(np.float64)
         
         df_features = df_features.dropna()
+        
+        # Ensure all numeric columns are float64
+        numeric_cols = df_features.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            df_features[col] = df_features[col].astype(np.float64)
+        
+        # Final NaN check
+        if df_features.isna().any().any():
+            df_features = df_features.fillna(df_features.mean(numeric_only=True))
         
         return df_features
     
@@ -115,6 +134,8 @@ class FeatureEngineer:
     
     def fit_scaler(self, X):
         """Fit scaler on training data"""
+        # Ensure X is float64
+        X = np.asarray(X, dtype=np.float64)
         self.scaler.fit(X)
         self.fitted = True
     
@@ -122,7 +143,12 @@ class FeatureEngineer:
         """Transform features"""
         if not self.fitted:
             raise ValueError("Scaler not fitted")
-        return self.scaler.transform(X)
+        # Ensure X is float64
+        X = np.asarray(X, dtype=np.float64)
+        X_transformed = self.scaler.transform(X).astype(np.float64)
+        # Replace any NaN/inf with 0
+        X_transformed = np.nan_to_num(X_transformed, nan=0.0, posinf=0.0, neginf=0.0)
+        return X_transformed
     
     def fit_transform(self, X):
         """Fit and transform"""

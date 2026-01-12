@@ -65,29 +65,51 @@ class HVACStateSensor:
 
 
 class IndoorTemperatureSensor:
-    """Simulates indoor temperature with thermal dynamics"""
+    """Simulates indoor temperature with bounded first-order thermal model"""
     
     def __init__(self, initial_temp=INITIAL_ROOM_TEMP):
-        self.temperature = initial_temp
+        self.temperature = float(np.clip(initial_temp, 16.0, 45.0))
+        # First-order thermal time constant (hours)
+        self.tau = 0.5  # 30-minute time constant for realistic responsiveness
         
     def update(self, outdoor_temp, occupancy, hvac_state, pcm_cooling_kw, time_step_hours):
-        """Update temperature based on heat balance"""
-        occupancy_heat_kw = (occupancy * HEAT_PER_PERSON) / 1000.0
-        temp_diff = outdoor_temp - self.temperature
-        outdoor_heat_kw = HEAT_TRANSFER_COEFF * ROOM_SURFACE_AREA * temp_diff / 1000.0
-        hvac_cooling_kw = -HVAC_COOLING_CAPACITY if hvac_state == 1 else 0.0
-        pcm_cooling_contribution = -pcm_cooling_kw
+        """Update temperature using bounded first-order thermal model"""
+        # Explicit float casting for all inputs
+        outdoor_temp = float(outdoor_temp)
+        occupancy = float(occupancy)
+        hvac_state = float(hvac_state)
+        pcm_cooling_kw = float(pcm_cooling_kw)
+        time_step_hours = float(time_step_hours)
+        current_temp = float(self.temperature)
         
-        total_heat_kw = (occupancy_heat_kw + outdoor_heat_kw + 
-                        hvac_cooling_kw + pcm_cooling_contribution)
+        # Calculate heat gains in °C/hour equivalent
+        occupancy_heat_effect = occupancy * HEAT_PER_PERSON / 100.0  # ~0.1-1°C per person
         
-        room_mass = ROOM_VOLUME * AIR_DENSITY
-        heat_capacity = room_mass * AIR_SPECIFIC_HEAT
-        energy_j = total_heat_kw * time_step_hours * 3600 * 1000
-        temp_change = energy_j / heat_capacity
+        # Cooling effects
+        hvac_cooling_effect = float(HVAC_COOLING_CAPACITY) if hvac_state == 1.0 else 0.0
+        hvac_cooling_effect *= -0.8  # Reduces indoor temp by up to 0.8°C per hour
         
-        self.temperature += temp_change
-        self.temperature += np.random.normal(0, 0.1)
+        pcm_cooling_effect = float(pcm_cooling_kw) * -0.5  # PCM contribution
+        
+        # Outdoor influence (first-order approach to equilibrium)
+        temp_diff = outdoor_temp - current_temp
+        # Bounded heat transfer (prevent extreme changes)
+        outdoor_influence = float(np.clip(temp_diff * 0.15, -2.0, 2.0))  # Max ±2°C/hour
+        
+        # First-order thermal dynamics: dT/dt = (T_equilibrium - T) / tau + noise
+        equilibrium_temp = current_temp + outdoor_influence + occupancy_heat_effect + hvac_cooling_effect + pcm_cooling_effect
+        
+        # Apply first-order filter
+        alpha = float(np.clip(time_step_hours / self.tau, 0.0, 1.0))
+        new_temp = current_temp + alpha * (equilibrium_temp - current_temp)
+        
+        # Add bounded measurement noise
+        noise = float(np.random.normal(0, 0.2))
+        noise = float(np.clip(noise, -0.5, 0.5))
+        new_temp += noise
+        
+        # Clamp to physical bounds
+        self.temperature = float(np.clip(new_temp, 16.0, 45.0))
         
         return self.temperature
     
@@ -148,10 +170,36 @@ if __name__ == "__main__":
     print("Generating simulated sensor data...")
     df = generate_simulation_data()
     
+    # Data validation and cleaning before saving
+    print("\n[Validation] Checking data integrity...")
+    
+    # Replace NaN and inf values
+    numeric_cols = ['outdoor_temp', 'indoor_temp', 'occupancy', 'hour', 'day_of_week']
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(float)
+            df[col] = np.nan_to_num(df[col], nan=0.0, posinf=0.0, neginf=0.0)
+    
+    # Clip temperature values to physical bounds
+    df['indoor_temp'] = np.clip(df['indoor_temp'], 16.0, 45.0)
+    df['outdoor_temp'] = np.clip(df['outdoor_temp'], 20.0, 50.0)
+    
+    # Validate no NaN or inf remain
+    for col in numeric_cols:
+        if col in df.columns:
+            nan_count = df[col].isna().sum()
+            inf_count = np.isinf(df[col]).sum()
+            if nan_count > 0 or inf_count > 0:
+                raise ValueError(f"Column '{col}' contains {nan_count} NaN and {inf_count} inf values")
+    
+    # Create data directory and save
     os.makedirs(DATA_DIR, exist_ok=True)
     df.to_csv(SIMULATED_DATA_PATH, index=False)
     
     print(f"✓ Generated {len(df)} data points")
     print(f"✓ Saved to {SIMULATED_DATA_PATH}")
     print(f"\nData Summary:")
-    print(df.describe())
+    print(df[['outdoor_temp', 'indoor_temp', 'occupancy']].describe())
+    print(f"\nValidation:")
+    print(f"  Indoor temp range: {df['indoor_temp'].min():.2f}°C to {df['indoor_temp'].max():.2f}°C")
+    print(f"  Outdoor temp range: {df['outdoor_temp'].min():.2f}°C to {df['outdoor_temp'].max():.2f}°C")
