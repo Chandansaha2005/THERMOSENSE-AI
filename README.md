@@ -252,26 +252,6 @@ Real-time monitoring of:
 
 ---
 
-## 🎤 Hackathon Pitch
-
-### 60-Second Pitch
-
-> "HVAC systems waste 40% of energy reacting AFTER rooms get hot. We built THERMOSENSE-AI with thermal budgeting—treating cooling like money. Our system predicts occupancy 30 minutes ahead and uses Phase Change Materials as thermal batteries.
-> 
-> At night when electricity costs ₹3/kWh, we store cooling. During peak at ₹8.5/kWh, we use stored cooling.
-> 
-> Result: 30% less energy, 33% lower costs, same comfort. Retrofit-ready, works with any HVAC."
-
-### Demo Flow (3 minutes)
-
-1. **Show Dashboard** (30s) - Live interface
-2. **Run Simulation** (60s) - Click button, watch results
-3. **Highlight Metrics** (45s) - "₹181 saved, 30% less energy"
-4. **Show Timeline** (30s) - Green=storing, Blue=using stored cooling
-5. **Impact** (15s) - Scalable to any building
-
----
-
 ## 🔧 Technical Specifications
 
 ### ML Models
@@ -375,8 +355,7 @@ streamlit run dashboard/app.py --server.port 8502
 
 ## 📜 License
 
-MIT License - Free for hackathons and educational use
-
+MIT License
 ---
 
 ## 🙏 Acknowledgments
