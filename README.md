@@ -8,12 +8,6 @@
   </a>
 </p>
 
-<p align="center">
-  <img src="assets/WorkflowDiagram.png" alt="THERMOSENSE-AI Workflow" width="800px" style="margin: 20px 0; border-radius: 10px;"/>
-</p>
-
----
-
 ## 🎯 Problem Statement
 
 HVAC systems consume **40% of building energy** but operate using primitive reactive control:
@@ -76,8 +70,9 @@ At every time step, the controller evaluates:
 
 ## 🏗️ System Architecture
 
+
 <p align="center">
-  <img src="assets/data.png" alt="System Data Flow" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+  <img src="assets/WorkflowDiagram.png" alt="THERMOSENSE-AI Workflow" width="500px" style="margin: 20px 0; border-radius: 10px;"/>
 </p>
 
 **End-to-End Pipeline:**
@@ -224,7 +219,11 @@ Simulates phase change material battery:
 
 ### 6️⃣ Dashboard Visualization
 <p align="center">
-  <img src="assets/temp&pcm.png" alt="Temperature & PCM Dashboard" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+  <img src="assets/temp&pcm.png" alt="Temperature & PCM Dashboard" width="5000px" style="margin: 20px 0; border-radius: 8px;"/>
+</p>
+
+<p align="center">
+  <img src="assets/data.png" alt="System Data Flow" width="5000px" style="margin: 20px 0; border-radius: 8px;"/>
 </p>
 
 Real-time monitoring of:
@@ -240,7 +239,7 @@ Real-time monitoring of:
 ### Typical 72-Hour Simulation Results
 
 <p align="center">
-  <img src="assets/keymetrics.png" alt="Key Performance Metrics" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+  <img src="assets/keymetrics.png" alt="Key Performance Metrics" width="700px" style="margin: 20px 0; border-radius: 8px;"/>
 </p>
 
 | Metric | Baseline | THERMOSENSE-AI | Improvement |
@@ -480,13 +479,13 @@ Found a bug or have an idea? Contributions are welcome!
 ---
 
 <p align="center">
-  <strong>Ready to revolutionize HVAC efficiency?</strong><br><br>
-  
+  <strong>Ready to revolutionize HVAC efficiency?</strong>
+
   ```bash
   streamlit run dashboard/app.py
   ```
   
-  <br>
+  <br><center>
   <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square" alt="Status"/>
   <img src="https://img.shields.io/badge/Python-3.8+-blue?style=flat-square" alt="Python"/>
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"/>
