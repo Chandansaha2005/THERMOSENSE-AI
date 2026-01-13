@@ -8,6 +8,10 @@
   </a>
 </p>
 
+<p align="center">
+  <img src="assets/WorkflowDiagram.png" alt="THERMOSENSE-AI Workflow" width="800px" style="margin: 20px 0; border-radius: 10px;"/>
+</p>
+
 ---
 
 ## 🎯 Problem Statement
@@ -72,133 +76,133 @@ At every time step, the controller evaluates:
 
 ## 🏗️ System Architecture
 
+<p align="center">
+  <img src="assets/data.png" alt="System Data Flow" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+</p>
+
+**End-to-End Pipeline:**
+
 ```
 IoT Sensors → Feature Engineering → ML Models → Thermal Controller
-                                         ↓
-                                   PCM Storage
-                                         ↓
-                                  HVAC Actions
-                                         ↓
-                                    Dashboard
+     ↓              ↓                   ↓              ↓
+Temperature    Lag Features      Occupancy        HVAC Actions
+Occupancy      Time Encoding     Temperature      PCM Control
+Electricity    Rolling Stats     Predictions      Dashboard
+Rates                                             Visualization
 ```
 
-### Components
+### Core Components
 
-1. **Simulated IoT Environment**
-   - Temperature (indoor/outdoor)
-   - Occupancy
-   - HVAC state
-   - Realistic patterns + noise
-
-2. **Feature Engineering Pipeline**
-   - Lag features (15, 30, 60 min)
-   - Cyclic time encoding
-   - Rolling statistics
-
-3. **ML Prediction Models**
-   - **Occupancy:** RandomForest (85-90% accuracy)
-   - **Temperature:** GradientBoosting (90-95% accuracy)
-
-4. **Phase Change Material Model**
-   - Max capacity: 15 kWh
-   - Charge rate: 2.5 kW
-   - Discharge rate: 2.0 kW
-   - Efficiency: 85%
-
-5. **Thermal Budget Controller** (Core Innovation)
-   - ML-informed decisions
-   - Economic optimization
-   - Comfort-first logic
-
-6. **Streamlit Dashboard**
-   - Real-time visualization
-   - Energy comparison
-   - Interactive controls
+| Component | Purpose | Details |
+|-----------|---------|---------|
+| **Simulated IoT** | Data Collection | Temperature, Occupancy, HVAC state with realistic patterns |
+| **Feature Engineering** | Data Preparation | 13-19 intelligent features (lags, cyclic encoding, rolling stats) |
+| **ML Models** | Prediction | Occupancy (RandomForest 85-90%), Temperature (GradientBoosting 90-95%) |
+| **Thermal Controller** | Decision Engine | Cost-optimized decisions with comfort priority |
+| **PCM Storage** | Energy Buffer | 15 kWh thermal battery (85% efficiency) |
+| **Dashboard** | Visualization | Real-time monitoring via Streamlit |
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 Installation & Quick Start
 
-### Quick Start (3 Commands)
+### ⚡ Quick Start (3 Commands)
 
 ```bash
-# 1. Install dependencies
+# 1️⃣ Install dependencies
 pip install -r requirements.txt
 
-# 2. Generate data and train models
+# 2️⃣ Generate data & train models (25 seconds)
 python simulation/sensors.py
 python ml/occupancy_model.py
 python ml/heat_model.py
 
-# 3. Launch dashboard
+# 3️⃣ Launch interactive dashboard
 streamlit run dashboard/app.py
 ```
 
-### Manual Setup
+**Dashboard opens at:** 🔗 `http://localhost:8501`
 
-```bash
-# Step 1: Install
-pip install numpy pandas scikit-learn streamlit matplotlib plotly joblib
+### 📋 Detailed Setup
 
-# Step 2: Generate sensor data (30 seconds)
-python simulation/sensors.py
+| Step | Command | Duration | Output |
+|:----:|:-------:|:--------:|:------:|
+| Install | `pip install -r requirements.txt` | 1 min | All dependencies |
+| Generate Data | `python simulation/sensors.py` | 30 sec | `data/simulated_data.csv` |
+| Train Occupancy | `python ml/occupancy_model.py` | 10 sec | `models/occupancy_model.pkl` |
+| Train Temperature | `python ml/heat_model.py` | 15 sec | `models/temperature_model.pkl` |
+| **Run Dashboard** | `streamlit run dashboard/app.py` | Instant | Interactive UI |
 
-# Step 3: Train occupancy model (10 seconds)
-python ml/occupancy_model.py
+**Total Setup Time:** ~2 minutes ⏱️
 
-# Step 4: Train temperature model (15 seconds)
-python ml/heat_model.py
+### 🔧 Advanced Configuration
 
-# Step 5: Launch dashboard
-streamlit run dashboard/app.py
+Edit `utils/config.py` to customize:
+
+```python
+# Modify these to experiment
+COMFORT_RANGE = (24, 26)        # Temperature setpoint (°C)
+PCM_CAPACITY = 15               # Thermal storage (kWh)
+HVAC_POWER = 3.5                # HVAC capacity (kW)
+PREDICTION_HORIZON = 30         # Forecast window (minutes)
+PEAK_HOUR_START = 14            # Peak tariff start (2 PM)
 ```
-
-Dashboard opens at: `http://localhost:8501`
 
 ---
 
 ## 📁 Project Structure
 
 ```
-thermosense_ai/
-├── data/
-│   └── simulated_data.csv        # Generated sensor data
-├── models/
-│   ├── occupancy_model.pkl       # Trained ML model
-│   └── temperature_model.pkl     # Trained ML model
-├── simulation/
-│   ├── sensors.py                # IoT sensor simulation
-│   ├── pcm.py                    # PCM thermal storage
-│   └── environment.py            # HVAC environment
-├── ml/
-│   ├── features.py               # Feature engineering
-│   ├── occupancy_model.py        # Occupancy predictor
-│   └── heat_model.py             # Temperature predictor
-├── controller/
-│   └── thermal_controller.py    # Decision engine (INNOVATION)
-├── dashboard/
-│   └── app.py                    # Streamlit interface
-├── utils/
-│   └── config.py                 # Configuration
-├── requirements.txt              # Dependencies
-└── README.md                     # This file
+thermosense-ai/
+│
+├── 📊 dashboard/
+│   └── app.py                          # Streamlit interactive dashboard
+│
+├── 🤖 ml/
+│   ├── features.py                     # Feature engineering pipeline
+│   ├── occupancy_model.py              # Occupancy predictor (RandomForest)
+│   └── heat_model.py                   # Temperature predictor (GradientBoosting)
+│
+├── 🏗️ simulation/
+│   ├── sensors.py                      # IoT sensor simulation
+│   ├── pcm.py                          # Phase Change Material model
+│   └── environment.py                  # HVAC environment dynamics
+│
+├── 🎛️ controller/
+│   └── thermal_controller.py           # Decision engine (Core Innovation)
+│
+├── 💾 data/
+│   └── simulated_data.csv              # Generated training data
+│
+├── 🎯 models/
+│   ├── occupancy_model.pkl             # Trained occupancy model
+│   └── temperature_model.pkl           # Trained temperature model
+│
+├── ⚙️ utils/
+│   └── config.py                       # Configuration & parameters
+│
+├── 📦 requirements.txt                 # Python dependencies
+├── 📖 README.md                        # This file
+└── 📜 LICENSE                          # MIT License
 ```
 
 ---
 
 ## 🎯 How It Works
 
-### 1. Data Collection
+### 1️⃣ Data Collection
 Realistic simulation of building sensors with daily/weekly patterns
 
-### 2. Feature Engineering
-Creates intelligent features: lags, time encodings, rolling stats
+### 2️⃣ Feature Engineering
+Intelligent preprocessing: lag features, time encodings, rolling statistics
 
-### 3. ML Predictions
-- Occupancy 30 min ahead (RandomForest)
-- Temperature 30 min ahead (GradientBoosting)
+### 3️⃣ ML Predictions
+- **Occupancy** 30 min ahead → RandomForest classifier
+- **Temperature** 30 min ahead → GradientBoosting regressor
 
-### 4. Thermal Budget Controller
+### 4️⃣ Thermal Budget Controller ⭐
+
+The **decision engine** evaluates real-time and predicted conditions:
 
 **Thermal Cost Score:**
 ```
@@ -206,174 +210,284 @@ Score = (Predicted Load × Electricity Price) - (PCM Benefit)
 ```
 
 **Decision Priority:**
-1. Comfort violation → Immediate action
-2. Predicted violation → Pre-cooling
-3. High cost + PCM available → Use PCM
-4. Low cost + low occupancy → Charge PCM
-5. Comfortable → Coast (no action)
+1. ❌ **Comfort Violation** → Immediate HVAC action
+2. ⚠️ **Predicted Violation** → Pre-cooling strategy
+3. 💰 **High Cost + PCM Available** → Discharge thermal storage
+4. 🔋 **Low Cost + Low Occupancy** → Charge PCM (store energy)
+5. ✅ **Comfortable & Optimized** → Coast (no action)
 
-### 5. PCM Storage
-Simulates thermal battery:
-- Charges at night (cheap electricity)
-- Discharges during peak (expensive electricity)
+### 5️⃣ PCM Thermal Storage
+Simulates phase change material battery:
+- **Charges** at night (₹3/kWh) → Store cooling for peak hours
+- **Discharges** during peak (₹8.5/kWh) → Use stored energy, save money
 - 85% round-trip efficiency
 
-### 6. Dashboard Visualization
+### 6️⃣ Dashboard Visualization
+<p align="center">
+  <img src="assets/temp&pcm.png" alt="Temperature & PCM Dashboard" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+</p>
+
 Real-time monitoring of:
-- Temperature trends
-- PCM charge level
-- Action timeline
-- Energy/cost savings
+- Temperature trends & comfort zones
+- PCM charge/discharge cycles
+- Action timeline (HVAC ON/OFF, PCM state)
+- Energy consumption & cost savings
 
 ---
 
-## 📊 Results
+## 📊 Performance Metrics
 
-### Typical 72-Hour Simulation
+### Typical 72-Hour Simulation Results
+
+<p align="center">
+  <img src="assets/keymetrics.png" alt="Key Performance Metrics" width="750px" style="margin: 20px 0; border-radius: 8px;"/>
+</p>
 
 | Metric | Baseline | THERMOSENSE-AI | Improvement |
-|--------|----------|----------------|-------------|
-| Energy | 89.5 kWh | 62.1 kWh | **-30.6%** |
-| Cost | ₹537.50 | ₹356.20 | **-33.7%** |
-| Peak Demand | 7.2 kW | 4.8 kW | **-33.3%** |
-| Comfort | 100% | 100% | **Same** |
+|:------:|:--------:|:--------------:|:-----------:|
+| **Energy Usage** | 89.5 kWh | 62.1 kWh | **-30.6%** ⚡ |
+| **Cost** | ₹537.50 | ₹356.20 | **-33.7%** 💰 |
+| **Peak Demand** | 7.2 kW | 4.8 kW | **-33.3%** 📉 |
+| **Comfort Score** | 100% | 100% | **Same** ✅ |
 
-### Key Insights
+### 🎯 Key Outcomes
 
-✅ **27-35% energy reduction**  
-✅ **30-40% cost savings**  
-✅ **30-35% peak demand reduction**  
-✅ **0% comfort violations**  
-✅ **Shifts load to off-peak hours**
+✅ **27-35% energy reduction** through intelligent scheduling  
+✅ **30-40% cost savings** by shifting loads to off-peak hours  
+✅ **30-35% peak demand reduction** easing grid stress  
+✅ **0% comfort violations** with comfort-first logic  
+✅ **Shifts consumption** from peak (₹8.5/kWh) to off-peak (₹3/kWh)  
 
-### Real-World Projection
+### 💼 Real-World ROI (500 m² Office)
 
-**For 500 m² office:**
-- Annual energy savings: **~12,000 kWh**
-- Annual cost savings: **₹72,000** (~$900)
-- CO₂ reduction: **~10 tons**
-- ROI: **8-12 months**
+| Metric | Annual Impact |
+|:-------|:-------------:|
+| **Energy Savings** | ~12,000 kWh 🔌 |
+| **Cost Savings** | ₹72,000 (~$900) 💵 |
+| **CO₂ Reduction** | ~10 tons 🌱 |
+| **Payback Period** | 8-12 months 📅 |
 
 ---
 
 ## 🔧 Technical Specifications
 
-### ML Models
-- **Occupancy:** RandomForest (100 trees, depth 15)
-- **Temperature:** GradientBoosting (150 trees, LR 0.1)
-- **Training time:** < 30 seconds total
-- **Features:** 13 (occupancy), 19 (temperature)
+### 🤖 Machine Learning Models
 
-### System Parameters
+| Model | Purpose | Architecture | Accuracy |
+|:-----:|:-------:|:------------:|:--------:|
+| **RandomForest** | Occupancy Prediction | 100 trees, depth 15 | 85-90% |
+| **GradientBoosting** | Temperature Prediction | 150 trees, LR 0.1 | 90-95% |
+
+**Training:** < 30 seconds total | **Features:** 13-19 intelligent features
+
+### ⚙️ System Parameters
+
 ```python
-COMFORT_RANGE = 24-26°C
-HVAC_CAPACITY = 3.5 kW
-HVAC_COP = 3.0
-PCM_CAPACITY = 15 kWh
-PCM_EFFICIENCY = 85%
-PREDICTION_HORIZON = 30 minutes
+# Comfort & HVAC
+COMFORT_RANGE        = 24-26°C (72.2-78.8°F)
+HVAC_CAPACITY        = 3.5 kW
+HVAC_COP             = 3.0 (Coefficient of Performance)
+
+# Thermal Storage (PCM Battery)
+PCM_CAPACITY         = 15 kWh
+PCM_CHARGE_RATE      = 2.5 kW
+PCM_DISCHARGE_RATE   = 2.0 kW
+PCM_EFFICIENCY       = 85%
+
+# Prediction & Control
+PREDICTION_HORIZON   = 30 minutes
+CONTROL_INTERVAL     = 15 minutes
+DECISION_UPDATE_RATE = Every 15 minutes
 ```
 
-### Electricity Costs
-- Peak (2-6 PM): ₹8.5/kWh
-- Standard (6 AM-10 PM): ₹6.0/kWh
-- Off-peak (10 PM-6 AM): ₹3.0/kWh
+### 💷 Electricity Tariff (Indian Model)
+
+```
+Peak Hours (2-6 PM):     ₹8.5/kWh  🔴
+Standard (6 AM-10 PM):   ₹6.0/kWh  🟡
+Off-Peak (10 PM-6 AM):   ₹3.0/kWh  🟢
+```
+
+**Smart Strategy:** Pre-cool at night (₹3) → Use stored cooling during peak (₹8.5) = **₹5.50/kWh savings**
 
 ---
 
-## 🏆 Competition Advantages
+## 🏆 Why THERMOSENSE-AI?
 
-### Technical Excellence
-✅ Complete working system (no mockups)  
-✅ Sophisticated ML pipeline  
-✅ Novel thermal budgeting approach  
-✅ Professional dashboard  
+### ✨ Technical Excellence
+- ✅ **Complete working system** - Not mockups or slides
+- ✅ **Sophisticated ML pipeline** - Professional-grade models
+- ✅ **Novel approach** - Thermal budgeting is unique in HVAC
+- ✅ **Production-ready code** - Fully documented, optimized
 
-### Business Viability
-✅ Clear ROI (10-month payback)  
-✅ Scalable (homes to hospitals)  
-✅ Retrofit-compatible  
-✅ Solves 40% of building energy use  
+### 💼 Business Viability
+- ✅ **Clear ROI** - 10-month payback period
+- ✅ **Scalable** - Works for homes, offices, hospitals, data centers
+- ✅ **Retrofit-compatible** - No major infrastructure changes
+- ✅ **Solves major problem** - HVAC is 40% of building energy
 
-### Multi-Track Coverage
-✅ Track 4: AI/ML Applications  
-✅ Track 5: IoT Applications  
-✅ Track 2: Green Technology  
-✅ Track 6: Carbon Control  
+### 🌍 Impact
+- ✅ **Reduces CO₂** - ~10 tons/year per building
+- ✅ **Eases grid stress** - Flattens peak demand by 33%
+- ✅ **Saves money** - ₹72,000/year per 500m² office
+- ✅ **Improves comfort** - Zero thermal violations  
 
 ---
 
 ## ❓ FAQ
 
-**Q: Is this just simulation?**  
-A: Yes, for hackathon. Physics and ML are production-ready. Phase 2 integrates real sensors.
+<details>
+<summary><strong>Q: Is this just a simulation?</strong></summary>
 
-**Q: How long to train models?**  
-A: 25 seconds total. Lightweight, edge-deployable.
+A: Yes, for this hackathon version. The physics models and ML pipeline are production-ready. Phase 2 will integrate real IoT sensors and HVAC hardware.
 
-**Q: What if prediction is wrong?**  
-A: Comfort is priority. If temp > 26°C, system immediately uses direct HVAC.
+</details>
 
-**Q: Can I modify parameters?**  
-A: Yes! Edit `utils/config.py` to change comfort range, PCM size, costs, etc.
+<details>
+<summary><strong>Q: How long does it take to train models?</strong></summary>
 
-**Q: How accurate are predictions?**  
-A: Occupancy 85-90% (MAE 1.5 persons), Temperature 90-95% (MAE 0.5°C).
+A: Only **25 seconds total** - RandomForest (10s) + GradientBoosting (15s). Lightweight and edge-deployable. ⚡
+
+</details>
+
+<details>
+<summary><strong>Q: What if ML predictions are wrong?</strong></summary>
+
+A: **Comfort is the priority.** If temperature exceeds 26°C, the system immediately activates HVAC regardless of predictions. Real-time sensor data always overrides forecasts.
+
+</details>
+
+<details>
+<summary><strong>Q: Can I customize the system?</strong></summary>
+
+A: Absolutely! Edit `utils/config.py` to change comfort range, PCM size, HVAC power, electricity tariffs, etc. See Advanced Configuration section above.
+
+</details>
+
+<details>
+<summary><strong>Q: What's the prediction accuracy?</strong></summary>
+
+A: 
+- **Occupancy:** 85-90% (Mean Absolute Error: 1.5 persons)
+- **Temperature:** 90-95% (MAE: 0.5°C)
+
+Trained on realistic patterns with noise.
+
+</details>
+
+<details>
+<summary><strong>Q: Can this work in other countries?</strong></summary>
+
+A: Yes! The system is tariff-agnostic. Modify electricity prices in `config.py` for your region (USA: $/kWh, Europe: €/kWh, etc.).
+
+</details>
 
 ---
 
-## 🚨 Troubleshooting
+## 🚨 Troubleshooting Guide
 
-**"Module not found"**
-```bash
-pip install -r requirements.txt
-```
+| Issue | Solution | Code |
+|:-----:|:--------:|:----:|
+| ❌ Import Error | Install all dependencies | `pip install -r requirements.txt` |
+| ❌ Data Missing | Generate sensor simulation | `python simulation/sensors.py` |
+| ❌ Models Missing | Train ML models | `python ml/occupancy_model.py && python ml/heat_model.py` |
+| ❌ Dashboard Won't Start | Try alternate port | `streamlit run dashboard/app.py --server.port 8502` |
+| ❌ Permission Denied | Use sudo (Linux/Mac) | `sudo python ...` |
+| ❌ Out of Memory | Reduce data generation | Edit `simulation/sensors.py` parameter `n_days=1` |
 
-**"Data not found"**
-```bash
-python simulation/sensors.py
-```
-
-**"Models not found"**
-```bash
-python ml/occupancy_model.py
-python ml/heat_model.py
-```
-
-**Dashboard won't start**
-```bash
-streamlit run dashboard/app.py --server.port 8502
-```
+**Need more help?** Check the inline code comments - every function is fully documented! 📝
 
 ---
 
-## 🔮 Future Enhancements
+## 🔮 Future Roadmap
 
-1. **Real Hardware** - Connect to actual IoT sensors
-2. **Multi-Room** - Extend to entire buildings
-3. **Deep Learning** - LSTM for longer predictions
-4. **Renewable Integration** - Prioritize solar energy
-5. **Cloud Dashboard** - Remote monitoring
+### 🔜 Phase 2 Enhancements
+
+- 🔌 **Real Hardware Integration** - Connect actual IoT sensors & smart meters
+- 🏢 **Multi-Room Systems** - Extend to entire buildings with zone-based control
+- 🧠 **Deep Learning** - LSTM networks for longer-term predictions
+- ☀️ **Renewable Integration** - Prioritize solar energy during generation peaks
+- 🌍 **Cloud Dashboard** - Remote monitoring across multiple properties
+- 📱 **Mobile App** - Real-time notifications & manual overrides
+- 🔗 **API Interface** - Integration with building management systems (BMS)
+- 🤝 **Multi-Building** - District-level energy optimization
+
+### 🎯 Success Metrics
+
+- ✅ Deploy in 5+ real buildings
+- ✅ Achieve 35-40% verified energy savings
+- ✅ Hit 12-month payback period
+- ✅ Generate 1000+ tons CO₂ reduction across fleet
+
+---
+
+## � Learning Resources
+
+### Understanding the System
+
+| Topic | Resource | Learning Time |
+|:-----:|:--------:|:-------------:|
+| **Thermal Physics** | `simulation/environment.py` | 10 min |
+| **PCM Storage** | `simulation/pcm.py` | 8 min |
+| **Feature Engineering** | `ml/features.py` | 12 min |
+| **ML Models** | `ml/occupancy_model.py`, `ml/heat_model.py` | 15 min |
+| **Decision Logic** | `controller/thermal_controller.py` | 15 min |
+
+### Key References
+
+- 📖 **PCM Technology:** NREL Thermal Energy Storage Research
+- 📖 **HVAC Standards:** ASHRAE 62.1 & 90.1 Guidelines
+- 📖 **Machine Learning:** scikit-learn Documentation & Scikit Learn Tutorials
+- 📖 **Time Series:** Feature Engineering for Temporal Data Analysis
+- 📖 **Energy Economics:** Electricity Pricing in Deregulated Markets
 
 ---
 
 ## 📜 License
 
-MIT License
+MIT License - Free for commercial and personal use
+
 ---
 
 ## 🙏 Acknowledgments
 
-- PCM research from NREL
-- HVAC dynamics from ASHRAE standards
-- Electricity pricing from Indian utilities
+- **PCM Research:** NREL (National Renewable Energy Laboratory)
+- **HVAC Dynamics:** ASHRAE (American Society of Heating, Refrigerating and Air-Conditioning Engineers)
+- **Energy Data:** Indian Electricity Regulatory Commission (CERC)
+- **ML Framework:** scikit-learn Open Source Community
 
 ---
 
-**Ready to revolutionize HVAC? Run the simulation!** 🚀
+## 🤝 Contributing
 
-```bash
-streamlit run dashboard/app.py
-```
+Found a bug or have an idea? Contributions are welcome! 
 
-**For questions or support, refer to the code comments - every function is documented.**
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📧 Contact & Support
+
+- 💬 **Questions?** Check the inline code comments - everything is documented
+- 🐛 **Bug Report?** Create an issue with reproduction steps
+- 💡 **Feature Request?** Open a discussion thread
+
+---
+
+<p align="center">
+  <strong>Ready to revolutionize HVAC efficiency?</strong><br><br>
+  
+  ```bash
+  streamlit run dashboard/app.py
+  ```
+  
+  <br>
+  <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square" alt="Status"/>
+  <img src="https://img.shields.io/badge/Python-3.8+-blue?style=flat-square" alt="Python"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License"/>
+</p>
