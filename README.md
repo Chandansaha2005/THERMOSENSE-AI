@@ -2,7 +2,11 @@
 
 ## AI-Driven Thermal Budgeting System for Predictive, Energy-Efficient HVAC Control
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue) ![Status](https://img.shields.io/badge/Status-Demo%20Ready-success)
+<p align="center">
+  <a href="https://thermosense-ai.streamlit.app/" target="_blank">
+    <img src="https://img.shields.io/badge/THERMOSENSE%20AI-Click%20Here-00C853?style=for-the-badge&logo=google-chrome&logoColor=white" alt="THERMOSENSE-AI Demo"/>
+  </a>
+</p>
 
 ---
 
